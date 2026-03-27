@@ -82,6 +82,39 @@
       </section>
     </main>
 
+    <div
+      id="victory-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="victory-title"
+      aria-describedby="victory-summary"
+      aria-hidden="true"
+      hidden
+    >
+      <section class="modal-card">
+        <p class="eyebrow">Puzzle Complete</p>
+        <h2 id="victory-title">恭喜通关</h2>
+        <p id="victory-summary" class="modal-summary">这一局已经顺利完成。</p>
+
+        <div class="modal-stats">
+          <article class="modal-stat">
+            <span>难度</span>
+            <strong id="victory-difficulty">中等</strong>
+          </article>
+          <article class="modal-stat">
+            <span>用时</span>
+            <strong id="victory-time">00:00</strong>
+          </article>
+        </div>
+
+        <div class="modal-actions">
+          <button id="play-again-button" type="button">再来一局</button>
+          <button id="close-modal-button" type="button">关闭弹窗</button>
+        </div>
+      </section>
+    </div>
+
     <script type="module" src="./game.mjs"></script>
   </body>
 </html>

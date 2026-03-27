@@ -23,6 +23,11 @@ const hintButton = document.querySelector("#hint-button");
 const checkButton = document.querySelector("#check-button");
 const eraseButton = document.querySelector("#erase-button");
 const padElement = document.querySelector("#number-pad");
+const victoryModal = document.querySelector("#victory-modal");
+const victoryDifficultyElement = document.querySelector("#victory-difficulty");
+const victoryTimeElement = document.querySelector("#victory-time");
+const playAgainButton = document.querySelector("#play-again-button");
+const closeModalButton = document.querySelector("#close-modal-button");
 
 const NUMBER_PAD_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -51,6 +56,7 @@ function createEmptyState() {
     startedAt: 0,
     finishedAt: 0,
     isBusy: false,
+    showVictoryModal: false,
   };
 }
 
@@ -85,6 +91,18 @@ function bindEvents() {
   hintButton.addEventListener("click", applyHint);
   checkButton.addEventListener("click", checkBoard);
   eraseButton.addEventListener("click", () => applyValue(0));
+
+  playAgainButton.addEventListener("click", () => {
+    startNewGame(difficultySelect.value);
+  });
+
+  closeModalButton.addEventListener("click", closeVictoryModal);
+
+  victoryModal.addEventListener("click", (event) => {
+    if (event.target === victoryModal) {
+      closeVictoryModal();
+    }
+  });
 }
 
 async function startNewGame(difficulty = "medium") {
@@ -98,6 +116,7 @@ async function startNewGame(difficulty = "medium") {
     status: "loading",
   };
 
+  syncVictoryModal();
   setMessage("正在生成新的数独题目...");
   timerElement.textContent = "00:00";
   progressElement.textContent = "0/81";
@@ -133,6 +152,7 @@ async function startNewGame(difficulty = "medium") {
     startedAt: Date.now(),
     finishedAt: 0,
     isBusy: false,
+    showVictoryModal: false,
   };
 
   difficultySelect.value = game.difficulty;
@@ -156,6 +176,7 @@ function resetBoard() {
     outcome: null,
     startedAt: Date.now(),
     finishedAt: 0,
+    showVictoryModal: false,
   };
   startTimer();
   setMessage("棋盘已重置。");
@@ -181,6 +202,7 @@ function revealSolution() {
     status: "completed",
     outcome: "revealed",
     finishedAt: Date.now(),
+    showVictoryModal: false,
   };
   stopTimer();
   setMessage("答案已显示，你可以直接开始下一局。");
@@ -221,7 +243,7 @@ function applyHint() {
   state.selected = target;
   clearIncorrectFlash();
 
-  if (finishIfSolved("已填入一个提示。")) {
+  if (finishIfSolved()) {
     return;
   }
 
@@ -240,7 +262,7 @@ function checkBoard() {
   clearIncorrectFlash();
 
   if (wrongCells.length === 0 && filledCells === BOARD_SIZE * BOARD_SIZE) {
-    finishIfSolved("全部正确，解题完成。");
+    finishIfSolved();
     return;
   }
 
@@ -265,6 +287,13 @@ function checkBoard() {
 
 function handleKeydown(event) {
   if (!state.board.length || state.isBusy) {
+    return;
+  }
+
+  if (state.showVictoryModal) {
+    if (event.key === "Escape") {
+      closeVictoryModal();
+    }
     return;
   }
 
@@ -364,7 +393,7 @@ function applyValue(value) {
     clearPeerNotes(index, value);
   }
 
-  if (finishIfSolved(value === 0 ? "已清除当前格。": `已填写数字 ${value}。`)) {
+  if (finishIfSolved()) {
     return;
   }
 
@@ -407,7 +436,7 @@ function resolveHintTarget() {
   return null;
 }
 
-function finishIfSolved(progressMessage) {
+function finishIfSolved() {
   if (!isSolved(state.board, state.solution)) {
     return false;
   }
@@ -418,6 +447,7 @@ function finishIfSolved(progressMessage) {
     status: "completed",
     outcome: "win",
     finishedAt,
+    showVictoryModal: true,
   };
   stopTimer();
   setMessage(`恭喜，数独完成，用时 ${formatDuration(finishedAt - state.startedAt)}。`);
@@ -431,6 +461,7 @@ function render() {
   renderBoard(state.board);
   syncControls();
   syncTimer();
+  syncVictoryModal();
 }
 
 function renderBoard(board) {
@@ -531,6 +562,18 @@ function buildCellClassName({ index, row, col, value, conflicts, selectedValue, 
   if (state.status === "completed") {
     classes.push("cell--completed");
   }
+  if (row === 0 && col === 0) {
+    classes.push("cell--corner-top-left");
+  }
+  if (row === 0 && col === BOARD_SIZE - 1) {
+    classes.push("cell--corner-top-right");
+  }
+  if (row === BOARD_SIZE - 1 && col === 0) {
+    classes.push("cell--corner-bottom-left");
+  }
+  if (row === BOARD_SIZE - 1 && col === BOARD_SIZE - 1) {
+    classes.push("cell--corner-bottom-right");
+  }
 
   return classes.join(" ");
 }
@@ -611,6 +654,22 @@ function setMessage(message) {
   messageElement.textContent = message;
 }
 
+function syncVictoryModal() {
+  const isOpen = state.showVictoryModal && state.outcome === "win";
+
+  victoryModal.hidden = !isOpen;
+  victoryModal.setAttribute("aria-hidden", String(!isOpen));
+  document.body.classList.toggle("modal-open", isOpen);
+
+  if (!isOpen) {
+    return;
+  }
+
+  victoryDifficultyElement.textContent = DIFFICULTIES[state.difficulty]?.label ?? DIFFICULTIES.medium.label;
+  victoryTimeElement.textContent = formatDuration(state.finishedAt - state.startedAt);
+  window.requestAnimationFrame(() => playAgainButton.focus());
+}
+
 function formatDuration(durationMs) {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
@@ -665,6 +724,18 @@ function getPeerIndices(index) {
 
 function sameBox(rowA, colA, rowB, colB) {
   return Math.floor(rowA / 3) === Math.floor(rowB / 3) && Math.floor(colA / 3) === Math.floor(colB / 3);
+}
+
+function closeVictoryModal() {
+  if (!state.showVictoryModal) {
+    return;
+  }
+
+  state = {
+    ...state,
+    showVictoryModal: false,
+  };
+  syncVictoryModal();
 }
 
 function clearIncorrectFlash() {
