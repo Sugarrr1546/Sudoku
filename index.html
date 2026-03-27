@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>数独游戏</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Logic Puzzle Studio</p>
+          <h1>数独</h1>
+          <p class="subtitle">
+            在 9 x 9 的棋盘中填入数字 1 到 9，让每一行、每一列和每个 3 x 3 宫格都恰好出现一次。
+          </p>
+        </div>
+        <div class="stats">
+          <article class="stat-card">
+            <span>难度</span>
+            <strong id="difficulty-label">中等</strong>
+          </article>
+          <article class="stat-card">
+            <span>用时</span>
+            <strong id="timer">00:00</strong>
+          </article>
+          <article class="stat-card">
+            <span>已填</span>
+            <strong id="progress">0/81</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <section class="panel board-panel">
+          <div class="toolbar">
+            <label class="difficulty-picker" for="difficulty-select">
+              <span>难度</span>
+              <select id="difficulty-select">
+                <option value="easy">简单</option>
+                <option value="medium" selected>中等</option>
+                <option value="hard">困难</option>
+              </select>
+            </label>
+
+            <div class="actions">
+              <button id="new-game-button" type="button">新游戏</button>
+              <button id="reset-button" type="button">重置本局</button>
+              <button id="solve-button" type="button">查看答案</button>
+            </div>
+          </div>
+
+          <p id="message" class="message" aria-live="polite">正在准备棋盘...</p>
+
+          <div class="board-shell">
+            <div id="board" class="board" role="grid" aria-label="数独棋盘"></div>
+          </div>
+
+          <p class="help">
+            键盘支持：数字键填写，方向键移动，Delete 清除，N 切换笔记模式。
+          </p>
+        </section>
+
+        <aside class="panel side-panel">
+          <div class="quick-actions">
+            <button id="note-button" type="button" aria-pressed="false">笔记模式：关</button>
+            <button id="hint-button" type="button">提示</button>
+            <button id="check-button" type="button">检查</button>
+            <button id="erase-button" type="button">清除格子</button>
+          </div>
+
+          <div id="number-pad" class="number-pad" aria-label="数字键盘"></div>
+
+          <div class="legend">
+            <h2>玩法提示</h2>
+            <p>选中空格后输入数字，重复数字会被标红。</p>
+            <p>开启笔记模式后，可以在空格里记录候选数。</p>
+            <p>提示会填入一个正确答案，查看答案会直接结束本局。</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./game.mjs"></script>
+  </body>
+</html>
